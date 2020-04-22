@@ -1,7 +1,7 @@
 import math
 import random
 from enum import Enum
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Callable
 
 from telepot import Bot
 from telepot.loop import MessageLoop
@@ -10,7 +10,8 @@ from telepot.namedtuple import ReplyKeyboardMarkup, KeyboardButton
 
 from bot_data import token
 
-# token = '376123312:AAELNb7UW7Ozu24tGcK3TZrD6tpIVHU4pU0'
+from util import getPlayerNameInput, getBidInput, getPartnerInput, getCardInput
+
 bot = Bot(token)
 
 def chatHandle(msg):
@@ -23,20 +24,20 @@ def chatHandle(msg):
 
 def callbackHandle(msg):
     chat_id = msg['from']['id']
-    print(chat_id)
-    keyboard = ReplyKeyboardMarkup(keyboard=[[str(i+1) + '♠️' for i in range(random.randint(1,13))]], resize_keyboard=True, one_time_keyboard=True)
+    showText(chat_id)
+    keyboard = ReplyKeyboardMarkup(keyard=[[str(i+1) + '♠️' for i in range(random.randint(1,13))]], resize_keyboard=True, one_time_keyboard=True)
 
     bot.sendMessage(chat_id, 'Example spades', reply_markup=keyboard)
 
 def createPlayer(name, hand, side):
     return {'name': name, 'hand': hand, 'side': side}
 
-def createPlayerList(deck):
+def createPlayerList(deck, getPlayerNameInput: Callable):
     sideList = ('N','E','S','W')
 
     return tuple([
         createPlayer(
-            input('Enter name for {}: '.format(sideList[i])),
+            getPlayerNameInput('Enter name for {}: '.format(sideList[i])),
             deck[i*13:(i*13)+13],
             sideList[i]
             )
@@ -61,18 +62,18 @@ def getPlayerIndex(player: dict, playerList: Tuple[dict]) -> int:
 
     raise Exception('Unable to find player index.')
 
-def progressBidPhase(curBid, curBidOwnerIdx, curPlayerIdx, playerList) -> Tuple[str, dict]:
+def progressBidPhase(curBid, curBidOwnerIdx, curPlayerIdx, playerList, getBidInput: Callable) -> Tuple[str, dict]:
     if curPlayerIdx == curBidOwnerIdx:
         winner = playerList[curBidOwnerIdx]
-        print('Winning Bid: {}, Bid Owner: {}'.format(curBid, winner['name']))
+        showText('Winning Bid: {}, Bid Owner: {}'.format(curBid, winner['name']))
         return curBid, winner
     else:
         if curBidOwnerIdx is not None:
             curBidOwner = playerList[curBidOwnerIdx]
-            print('Current Bid: {}, Bid Owner: {}'.format(curBid, curBidOwner['name']))
+            showText('Current Bid: {}, Bid Owner: {}'.format(curBid, curBidOwner['name']))
         validBids = getValidBids()
         curPlayer = playerList[curPlayerIdx]
-        nextBid = input('{}, please enter your bid: '.format(curPlayer['name'])).upper()
+        nextBid = getBidInput('{}, please enter your bid: '.format(curPlayer['name'])).upper()
 
         # pass
         if nextBid == 'P':
@@ -80,16 +81,18 @@ def progressBidPhase(curBid, curBidOwnerIdx, curPlayerIdx, playerList) -> Tuple[
                 curBid,
                 curBidOwnerIdx,
                 getNextPlayerIndex(curPlayerIdx),
-                playerList
+                playerList,
+                getBidInput
                 )
         # invalid bid
         elif not nextBid in validBids or validBids[nextBid] <= validBids[curBid]:
-            print('Invald bid entered.')
+            showText('Invald bid entered.')
             return progressBidPhase(
                 curBid,
                 curBidOwnerIdx,
                 curPlayerIdx,
-                playerList
+                playerList,
+                getBidInput
                 )
         # valid bid
         else:
@@ -97,18 +100,19 @@ def progressBidPhase(curBid, curBidOwnerIdx, curPlayerIdx, playerList) -> Tuple[
                 nextBid,
                 curPlayerIdx,
                 getNextPlayerIndex(curPlayerIdx),
-                playerList
+                playerList,
+                getBidInput
                 )
             
-def startBidPhase(playerList, bidOpenerIdx) -> Tuple[str, dict]:
-    print('--- BID PHASE ---')
-    return progressBidPhase('P', None, bidOpenerIdx, playerList)
+def startBidPhase(playerList, bidOpenerIdx, getBidInput: Callable) -> Tuple[str, dict]:
+    showText('--- BID PHASE ---')
+    return progressBidPhase('P', None, bidOpenerIdx, playerList, getBidInput)
 
-def progressPartneringPhase(bidWinner, chosenPartner, playerList) -> dict:
+def progressPartneringPhase(bidWinner, chosenPartner, playerList, getPartnerInput: Callable) -> dict:
     if chosenPartner is not None:
         return chosenPartner
     else:
-        partnerCard = input('{}, please choose your partner (eg. 2C, AD): '.format(bidWinner['name'])).upper()
+        partnerCard = getPartnerInput('{}, please choose your partner (eg. 2C, AD): '.format(bidWinner['name'])).upper()
 
         for player in playerList:
             if player['side'] == bidWinner['side']:
@@ -117,18 +121,18 @@ def progressPartneringPhase(bidWinner, chosenPartner, playerList) -> dict:
             for card in player['hand']:
                 try:
                     if partnerCard[-1] == card['suit'] and partnerCard[:-1] == card['num']:
-                        print("{}'s partner is {}.".format(bidWinner['name'], partnerCard))
-                        return progressPartneringPhase(bidWinner, player, playerList)
+                        showText("{}'s partner is {}.".format(bidWinner['name'], partnerCard))
+                        return progressPartneringPhase(bidWinner, player, playerList, getPartnerInput)
                 except:
-                    print('Invalid card entered.')
-                    return progressPartneringPhase(bidWinner, chosenPartner, playerList)
+                    showText('Invalid card entered.')
+                    return progressPartneringPhase(bidWinner, chosenPartner, playerList, getPartnerInput)
 
-        print('404 partner not found.')
-        return progressPartneringPhase(bidWinner, chosenPartner, playerList)
+        showText('404 partner not found.')
+        return progressPartneringPhase(bidWinner, chosenPartner, playerList, getPartnerInput)
 
-def startPartneringPhase(bidWinner, playerList) -> Dict[str, Tuple[int]]:
-    print('--- PARTNERING PHASE ---')
-    chosenPartner = progressPartneringPhase(bidWinner, None, playerList)
+def startPartneringPhase(bidWinner, playerList, getPartnerInput: Callable) -> Dict[str, Tuple[int]]:
+    showText('--- PARTNERING PHASE ---')
+    chosenPartner = progressPartneringPhase(bidWinner, None, playerList, getPartnerInput)
 
     declarerPartners = tuple([getPlayerIndex(bidWinner, playerList), getPlayerIndex(chosenPartner, playerList)])
     defenderPartners = tuple([i for i in range(4) if i not in declarerPartners])
@@ -137,11 +141,9 @@ def startPartneringPhase(bidWinner, playerList) -> Dict[str, Tuple[int]]:
 
 def showPlayerHand(player):
     sortedReversedDeck = sorted(card['suit'] + card['num'] for card in player['hand'])
+    text = ' '.join([rCard[1:] + rCard[0] for rCard in sortedReversedDeck])
 
-    for rCard in sortedReversedDeck:
-        print(rCard[1:] + rCard[0], end=' ')
-
-    print()
+    showText(text)
 
 def getPlayCard(cardStr: str, player: dict) -> dict or None:
     for card in player['hand']:
@@ -167,23 +169,23 @@ def getNewWinningCardAndPlayerIndex(curWinningCard, curPlayCard, trumpSuit, curP
         if curPlayCard['suit'] == trumpSuit:
             if curWinningCard['suit'] != trumpSuit or curPlayCard['value'] > curWinningCard['value']:
                 return curPlayCard, curPlayerIdx
-                print('round1')
+                showText('round1')
             else:
                 return curWinningCard, curWinnerIdx
-                print('round2')
+                showText('round2')
         elif curPlayCard['suit'] == curWinningCard['suit']:
             if curPlayCard['value'] > curWinningCard['value']:
                 return curPlayCard, curPlayerIdx
-                print('round3')
+                showText('round3')
             else:
                 return curWinningCard, curWinnerIdx
-                print('round4')
+                showText('round4')
         else:
             return curWinningCard, curWinnerIdx
-            print('round5')
+            showText('round5')
     else:
         return curPlayCard, curPlayerIdx
-        print('round6')
+        showText('round6')
 
 def checkHandForNonTrumpValidPlay(curPlayer, startingSuit):
     for card in curPlayer['hand']:
@@ -191,35 +193,67 @@ def checkHandForNonTrumpValidPlay(curPlayer, startingSuit):
             return True
     return False
 
-def progressRound(starterIdx, startingSuit, curPlayerIdx, curWinnerIdx, curWinningCard: dict, trumpSuit, trumpIsBroken, playerList) -> Tuple[int, bool, Tuple[dict]]:
+def progressRound(starterIdx: int, startingSuit: str, curPlayerIdx: int,
+    curWinnerIdx: int, curWinningCard: dict, trumpSuit: str,
+    trumpIsBroken: bool, playerList: Tuple[dict], getCardInput: Callable) -> Tuple[int, bool, Tuple[dict]]:
     if curWinnerIdx is not None and curPlayerIdx == starterIdx:
         winningPlay = curWinningCard['num'] + curWinningCard['suit']
         winnerName = playerList[curWinnerIdx]['name']
         winnerSide = playerList[curWinnerIdx]['side']
-        print('>>> Winning play is {} by {}({})'.format(winningPlay, winnerName, winnerSide))
+        showText('>>> Winning play is {} by {}({})'.format(winningPlay, winnerName, winnerSide))
         
         return curWinnerIdx, trumpIsBroken, playerList
     else:
-        print('ids:', starterIdx, curPlayerIdx, curWinnerIdx)
-        print('opening suit:', startingSuit)
+        showText('ids: {} {}'.format(starterIdx, curPlayerIdx, curWinnerIdx))
+        showText('opening suit: {}'.format(startingSuit))
         curPlayer = playerList[curPlayerIdx]
         showPlayerHand(curPlayer)
-        curPlayStr = input("{}, please enter card to play: ".format(curPlayer['name'])).upper()
+        curPlayStr = getCardInput("{}, please enter card to play: ".format(curPlayer['name'])).upper()
 
         curPlayCard = getPlayCard(curPlayStr, curPlayer)
         if not curPlayCard:
-            print('Invalid play.')
-            return progressRound(starterIdx, startingSuit, curPlayerIdx, curWinnerIdx, curWinningCard, trumpSuit, trumpIsBroken, playerList)
+            showText('Invalid play.')
+            return progressRound(
+                starterIdx, 
+                startingSuit, 
+                curPlayerIdx, 
+                curWinnerIdx, 
+                curWinningCard, 
+                trumpSuit, 
+                trumpIsBroken, 
+                playerList,
+                getCardInput
+                )
 
         if curPlayCard['suit'] == trumpSuit:
             if not startingSuit and not trumpIsBroken:
-                print('Trump has not been broken.')
-                return progressRound(starterIdx, startingSuit, curPlayerIdx, curWinnerIdx, curWinningCard, trumpSuit, trumpIsBroken, playerList)
+                showText('Trump has not been broken.')
+                return progressRound(
+                    starterIdx,
+                    startingSuit, 
+                    curPlayerIdx, 
+                    curWinnerIdx, 
+                    curWinningCard, 
+                    trumpSuit, 
+                    trumpIsBroken, 
+                    playerList,
+                    getCardInput
+                    )
             elif startingSuit != trumpSuit:
                 hasNonTrumpPlay = checkHandForNonTrumpValidPlay(curPlayer, startingSuit)
                 if hasNonTrumpPlay:
-                    print('Please play non-trump card.')
-                    return progressRound(starterIdx, startingSuit, curPlayerIdx, curWinnerIdx, curWinningCard, trumpSuit, trumpIsBroken, playerList)
+                    showText('Please play non-trump card.')
+                    return progressRound(
+                        starterIdx,
+                        startingSuit, 
+                        curPlayerIdx, 
+                        curWinnerIdx, 
+                        curWinningCard, 
+                        trumpSuit, 
+                        trumpIsBroken, 
+                        playerList,
+                        getCardInput
+                        )
 
         if not startingSuit:
             newStartingSuit = curPlayCard['suit']
@@ -236,10 +270,20 @@ def progressRound(starterIdx, startingSuit, curPlayerIdx, curWinnerIdx, curWinni
         except TypeError:
             newTrumpIsBroken = trumpIsBroken
         
-        return progressRound(starterIdx, newStartingSuit, newPlayerIdx, newWinnerIdx, newWinningCard, trumpSuit, newTrumpIsBroken, newPlayerList)                   
+        return progressRound(
+            starterIdx, 
+            newStartingSuit, 
+            newPlayerIdx, 
+            newWinnerIdx, 
+            newWinningCard, 
+            trumpSuit, 
+            newTrumpIsBroken, 
+            newPlayerList,
+            getCardInput
+            )                   
 
-def startRound(starterIdx, trumpSuit, trumpIsBroken, playerList) -> Tuple[int, bool, Tuple[dict]]:
-    return progressRound(starterIdx, None, starterIdx, None, None, trumpSuit, trumpIsBroken, playerList)
+def startRound(starterIdx, trumpSuit, trumpIsBroken, playerList, getCardInput: Callable) -> Tuple[int, bool, Tuple[dict]]:
+    return progressRound(starterIdx, None, starterIdx, None, None, trumpSuit, trumpIsBroken, playerList, getCardInput)
                  
 def progressGamePhase(roundNum, indivScores, curPlayerIdx, trumpSuit, trumpIsBroken, partners, declarerScore, defenderScore, declarerGoal, defenderGoal, playerList) -> Tuple[int, int]:
     if declarerScore == declarerGoal:
@@ -247,8 +291,8 @@ def progressGamePhase(roundNum, indivScores, curPlayerIdx, trumpSuit, trumpIsBro
     elif defenderScore == defenderGoal:
         return partners['defender']
     else:
-        print('--- ROUND {} ---'.format(roundNum))
-        print('SCORES:', indivScores)
+        showText('--- ROUND {} ---'.format(roundNum))
+        showText('SCORES: {}'.format(indivScores))
         roundWinnerIdx, newTrumpIsBroken, newPlayerList = startRound(curPlayerIdx, trumpSuit, trumpIsBroken, playerList)
 
         if roundWinnerIdx in partners['declarer']:
@@ -260,12 +304,12 @@ def progressGamePhase(roundNum, indivScores, curPlayerIdx, trumpSuit, trumpIsBro
 
         newIndivScores = tuple([indivScores[i] + 1 if i == roundWinnerIdx else indivScores[i] for i in range(4)])
 
-        print('scores:', newDeclarerScore, newDefenderScore)
+        showText('scores: {} {}'.format(newDeclarerScore, newDefenderScore))
             
         return progressGamePhase(roundNum + 1, newIndivScores, roundWinnerIdx, trumpSuit, newTrumpIsBroken, partners, newDeclarerScore, newDefenderScore, declarerGoal, defenderGoal, newPlayerList)
 
 def startGamePhase(bidWinnerIdx, trumpSuit, partners, declarerGoal, defenderGoal, playerList) -> Tuple[int, int]:
-    print('--- GAME PHASE ---')
+    showText('--- GAME PHASE ---')
     return progressGamePhase(1, tuple([0,0,0,0]), bidWinnerIdx, trumpSuit, False, partners, 0, 0, declarerGoal, defenderGoal, playerList)
 
 def accumulatePoint(curPoint, remainingHand, pointMap):
@@ -289,7 +333,7 @@ def getShuffledDeck(deck):
     for i in range(4):
         hand = shuffledDeck[i*13:(i*13)+13]
         if getHandPoints(hand) < 4:
-            print(hand)
+            showText(str(hand))
             return getShuffledDeck(shuffledDeck)
 
     return shuffledDeck
@@ -308,27 +352,27 @@ def getGoals(winningBid) -> Tuple[int, int]:
 
     return declarerGoal, defenderGoal
 
-def main():
-    pList = createPlayerList(getShuffledDeck(getSortedDeck()))
+def main(getPlayerNameInput: Callable, getBidInput: Callable, getPartnerInput: Callable, getCardInput: Callable):
+    pList = createPlayerList(getShuffledDeck(getSortedDeck()), getPlayerNameInput)
 
     for p in pList:
         showPlayerHand(p)
         
     bidOpenerIdx = random.randint(0,3)
         
-    winningBid, bidWinner = startBidPhase(pList, bidOpenerIdx)
+    winningBid, bidWinner = startBidPhase(pList, bidOpenerIdx, getBidInput)
     bidWinnerIdx = getPlayerIndex(bidWinner, pList)
     openerIdx = getNextPlayerIndex(bidWinnerIdx)
     trumpSuit = winningBid[-1]
-    print('win bid: {}, trump: {}'.format(winningBid, trumpSuit))
-    partners = startPartneringPhase(bidWinner, pList)
+    showText('win bid: {}, trump: {}'.format(winningBid, trumpSuit))
+    partners = startPartneringPhase(bidWinner, pList, getPartnerInput)
     declarerGoal, defenderGoal = getGoals(winningBid)
-    print('goals:', declarerGoal, defenderGoal)
-    winningPartners = startGamePhase(openerIdx, trumpSuit, partners, declarerGoal, defenderGoal, pList)
+    showText('goals:', declarerGoal, defenderGoal)
+    winningPartners = startGamePhase(openerIdx, trumpSuit, partners, declarerGoal, defenderGoal, pList, getCardInput)
 
     winnerName1 = pList[winningPartners[0]]['name']
     winnerName2 = pList[winningPartners[1]]['name']
-    print('Winners are {} and {}. Congrats!'.format(winnerName1, winnerName2))
+    showText('Winners are {} and {}. Congrats!'.format(winnerName1, winnerName2))
 
 def test_telepot():
     routingTable = {
@@ -338,7 +382,7 @@ def test_telepot():
     MessageLoop(bot, routingTable).run_as_thread()
 
 if __name__ == '__main__':
-    #main()
+    # main(getPlayerNameInput, getBidInput, getPartnerInput, getCardInput)
     test_telepot()
 
     # TODO:
