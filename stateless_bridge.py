@@ -10,7 +10,7 @@ from telepot.namedtuple import ReplyKeyboardMarkup, KeyboardButton
 
 from bot_data import token
 
-from util import getPlayerNameInput, getBidInput, getPartnerInput, getCardInput
+from util import getPlayerNameInput, getBidInput, getPartnerInput, getCardInput, showText
 
 bot = Bot(token)
 
