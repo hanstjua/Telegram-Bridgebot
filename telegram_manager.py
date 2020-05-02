@@ -205,8 +205,6 @@ class TelegramManager(ChatHandler):
 		if not self.bridgeThread.is_alive():
 			self.sender.sendMessage('bridge thread stopped ...')
 
-		print('entered card input')
-
 		text = self.sanitiseString(text)
 
 		playMessage = '[{}](tg://user?id={}) '.format(self.nameMap[targetId], self.chatIdMap[targetId]) + text
@@ -214,26 +212,19 @@ class TelegramManager(ChatHandler):
 
 		cardInput = ''
 
-		print('entering loop ...')
 		while True:
-			print('loop')
 			if self.messageBuffer:
-				print('buffer check passed')
 				message = self.messageBuffer.pop(0)
-				print(message)
 
 				if message['from']['id'] == self.chatIdMap[targetId]:
 					commandArgs = message['text'].strip().split(' ')
-					print(commandArgs)
 					if commandArgs[0] == BotCommand.CARD.value:
 						try:
 							cardInput = commandArgs[1]
 							cardInput = self.charFromEmoji(cardInput)
 						except IndexError:
-							print("indexError raised")
 							continue
 
-						print("exiting loop ...")
 						break
 
 			time.sleep(0.01)
