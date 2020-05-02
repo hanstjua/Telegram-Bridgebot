@@ -1,14 +1,20 @@
-def getPlayerNameInput(text: str = '') -> str:
+def getPlayerNameInput(targetId: str, text: str = '') -> str:
 	return input(text)
 
-def getBidInput(text: str = '') -> str:
+def getBidInput(targetId: str, text: str = '') -> str:
 	return input(text)
 
-def getPartnerInput(text: str = '') -> str:
+def getPartnerInput(targetId: str, text: str = '') -> str:
 	return input(text)
 
-def getCardInput(text: str = '') -> str:
+def getCardInput(targetId: str, text: str = '') -> str:
 	return input(text)
 
 def showText(text: str):
+	print(text)
+
+def showCards(player: dict):
+	sortedReversedDeck = sorted(card['suit'] + card['num'] for card in player['hand'])
+	text = ' '.join([rCard[1:] + rCard[0] for rCard in sortedReversedDeck])
+    
 	print(text)
