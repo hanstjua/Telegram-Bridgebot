@@ -13,7 +13,6 @@ from bot_data import token
 import util
 
 bot = Bot(token)
-# bot = Bot('1213068461:AAGQKXKc1IVmmpQUvcGhtO5a5ytTe6zRMm8')
 
 def chatHandle(msg):
     print('text',msg)
