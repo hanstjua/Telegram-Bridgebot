@@ -55,7 +55,7 @@ To start a game, type `/start` command inside the telegram group chat.
 ## FAQs
 
 1. Why don't you just host the bot online using Heroku, Pythonanywhere, etc.?
-- **Because I don't see a reason to do so.** I just wanted to develop a game I can easily play with my friends, and as it is, I can easily run the bot on my local machine whenever my friends feel like playing. Maybe I'll consider hosting it online in the future if I see a lot of interest in getting this bot online continuously.
+- **Because I don't see any reason to.** I just wanted to develop a game I can easily play with my friends, and as it is, I can easily run the bot on my local machine whenever my friends feel like playing. Maybe I'll consider hosting it online in the future if I see a lot of interest in getting this bot online continuously.
 
 2. Is it possible to play a contract bridge game with this bot?
 - **Yes, _to a certain extent_.** Since floating bridge is practically contract bridge with less restrictions, you can always manually implement additional restrictions (e.g. fixed NS-EW partnerships) in the game and play it as a contract bridge game. One issue, though, is that the declarer partners will have to expose one of the cards belonging to the non-playing partner during the partner selection phase. In contract bridge, the non-playing partner will only expose his/her entire hand to the table after the first defender has opened the first round.
