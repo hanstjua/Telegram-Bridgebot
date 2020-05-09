@@ -1,6 +1,6 @@
 # Telegram-Bridgebot
 
-Social Bridge bot for telegram.
+Floating brige bot for telegram.
 
 ## Getting Started
 
@@ -18,7 +18,7 @@ First, clone this repo using this command in your terminal: `git clone https://g
 
 Next, create your own Telegram bot ([instructions here](https://core.telegram.org/bots#3-how-do-i-create-a-bot)) and get your bot token.
 
-With your token ready, go into your Telegram-Bridgebot directory and create a Python file called *bot_data.py* (refer to the directory tree below).
+With your token ready, go into your Telegram-Bridgebot directory and create a Python file called **bot_data.py** (refer to the directory tree below).
 
 ```
 - Telegram-Bridgebot
@@ -30,10 +30,16 @@ With your token ready, go into your Telegram-Bridgebot directory and create a Py
   - **bot_data.py**
 ```
 
-In the *bot_data.py*, add the line below to store your bot token value:
+In the **bot_data.py**, add the line below to store your bot token value:
 
 `token = '<YOUR_TOKEN_VALUE>'`
 
-(Remember to replace *<YOUR\_TOKEN\_VALUE>* with your bot's token value obtained from the *BotFather*)
+(Remember to replace *<YOUR\_TOKEN\_VALUE>* with your bot's token value obtained from the **BotFather**)
 
 Finally, save the file and your are ready to host your Bridgebot!
+
+**Important: _Always keep your bot token secret!_ Should your bot's token be exposed (e.g. accidentally uploaded to online platforms), immediately ask the BotFather for a new token.**
+
+### Hosting your Bot
+
+To host your bot, simply run the **telegram_manager.py**.
