@@ -18,7 +18,7 @@ First, clone this repo using this command in your terminal: `git clone https://g
 
 Next, create your own Telegram bot ([instructions here](https://core.telegram.org/bots#3-how-do-i-create-a-bot)) and get your bot token.
 
-With your token ready, go into your Telegram-Bridgebot directory and create a Python file called *bot\_data.py* (refer to the directory tree below).
+With your token ready, go into your Telegram-Bridgebot directory and create a Python file called *bot_data.py* (refer to the directory tree below).
 
 ```
 - Telegram-Bridgebot
@@ -27,12 +27,12 @@ With your token ready, go into your Telegram-Bridgebot directory and create a Py
   - bridge.py
   - util.py
   - main.py
-  - **bot\_data.py**
+  - **bot_data.py**
 ```
 
 In the *bot_data.py*, add the line below to store your bot token value:
 
-`token = '<YOUR\_TOKEN\_VALUE>'`
+`token = '<YOUR_TOKEN_VALUE>'`
 
 (Remember to replace *<YOUR\_TOKEN\_VALUE>* with your bot's token value obtained from the *BotFather*)
 
