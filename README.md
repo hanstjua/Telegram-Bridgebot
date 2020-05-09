@@ -1,6 +1,6 @@
 # Telegram-Bridgebot
 
-Floating brige bot for telegram.
+Floating bridge bot for telegram.
 
 ## Introduction
 
