@@ -42,7 +42,7 @@ In the **bot_data.py**, add the line below to store your bot token value:
 
 Finally, save the file and your are ready to host your Bridgebot!
 
-**Important: _Always keep your bot token secret!_ Should your bot's token be exposed (e.g. accidentally uploaded to online platforms), immediately ask the BotFather for a new token.**
+**Important: _Always keep your bot token secret!_ Should your bot's token be compromised (e.g. accidentally uploaded to online platforms), immediately [ask the BotFather for a new token](https://core.telegram.org/bots#generating-an-authorization-token).**
 
 ## Running your Bot
 
